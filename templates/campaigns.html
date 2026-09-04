@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Retention Campaigns</h2>
+            <p class="text-muted small mb-0">Track active promotional offers and outreach sent to at-risk accounts.</p>
+        </div>
+        <a href="{{ url_for('customers') }}" class="btn btn-outline-primary fw-bold">
+            <i class="bi bi-people-fill me-1"></i> Customer Directory
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show mb-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card border-0 shadow-sm p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle w-100" id="campaignsTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Campaign ID</th>
+                        <th>Customer ID</th>
+                        <th>Risk Profile</th>
+                        <th>Offer Type</th>
+                        <th>Discount</th>
+                        <th>Dispatched At</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in campaigns %}
+                    <tr>
+                        <td class="fw-bold text-secondary">#CMP-{{ item.campaign_id }}</td>
+                        <td>#CUST-{{ item.customer_id }}</td>
+                        <td>
+                            <span class="badge {% if item.risk_level == 'High Risk' %}bg-danger{% else %}bg-success{% endif %}">
+                                {{ item.risk_level }}
+                            </span>
+                        </td>
+                        <td class="fw-semibold">{{ item.offer_type }}</td>
+                        <td class="text-success fw-bold">{{ item.discount_percent }}% OFF</td>
+                        <td class="small text-muted">{{ item.sent_at or 'N/A' }}</td>
+                        <td>
+                            {% if item.status == 'Sent' %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-send me-1"></i> Sent</span>
+                            {% elif item.status == 'Accepted' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Accepted</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ item.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Suppress alert modals for DataTables and output to console instead
+    $.fn.dataTable.ext.errMode = 'throw';
+
+    $(document).ready(function() {
+        if ($.fn.DataTable.isDataTable('#campaignsTable')) {
+            $('#campaignsTable').DataTable().destroy();
+        }
+        
+        $('#campaignsTable').DataTable({
+            pageLength: 10,
+            order: [[0, 'desc']],
+            dom: '<"d-flex justify-content-between align-items-center mb-3"Bf>rt<"d-flex justify-content-between align-items-center mt-3"lip>',
+            buttons: [
+                { extend: 'csv', text: '<i class="bi bi-filetype-csv me-1"></i> CSV', className: 'btn btn-sm btn-outline-secondary me-1' },
+                { extend: 'excel', text: '<i class="bi bi-file-earmark-excel me-1"></i> Excel', className: 'btn btn-sm btn-outline-success me-1' },
+                { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> Export PDF', className: 'btn btn-sm btn-outline-danger me-1' },
+                { extend: 'print', text: '<i class="bi bi-printer me-1"></i> Print', className: 'btn btn-sm btn-outline-dark' }
+            ],
+            language: {
+                emptyTable: "No retention campaigns dispatched yet. Trigger an offer from the Customer Directory."
+            }
+        });
+    });
+</script>
+{% endblock %}

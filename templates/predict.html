@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold">Interactive Churn Simulator</h2>
+    <p class="text-muted">Adjust customer metrics in real-time to assess churn risk and probability.</p>
+
+    <form method="POST" action="{{ url_for('predict') }}" id="simulatorForm">
+        <div class="row mb-4">
+            <!-- Tenure Slider -->
+            <div class="col-md-6">
+                <label for="tenure" class="form-label fw-bold">
+                    Tenure (Months): <span id="tenureVal" class="text-primary">{{ tenure if tenure else 12 }}</span>
+                </label>
+                <input 
+                    type="range" 
+                    class="form-range" 
+                    id="tenure" 
+                    name="tenure" 
+                    min="1" 
+                    max="72" 
+                    value="{{ tenure if tenure else 12 }}" 
+                    oninput="updateCalculations()"
+                >
+            </div>
+
+            <!-- Monthly Charges Slider -->
+            <div class="col-md-6">
+                <label for="monthly_charges" class="form-label fw-bold">
+                    Monthly Charges (₹): <span id="monthlyVal" class="text-primary">₹{{ "%.2f"|format(monthly_charges|float) if monthly_charges else '75.00' }}</span>
+                </label>
+                <input 
+                    type="range" 
+                    class="form-range" 
+                    id="monthly_charges" 
+                    name="monthly_charges" 
+                    min="18" 
+                    max="120" 
+                    step="0.50" 
+                    value="{{ monthly_charges if monthly_charges else 75.00 }}" 
+                    oninput="updateCalculations()"
+                >
+            </div>
+        </div>
+
+        <!-- Dynamic Total Charges Display -->
+        <div class="alert alert-light border mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-secondary">Estimated Total Charges:</span>
+                <span class="fs-5 fw-bold text-dark" id="totalChargesVal">₹0.00</span>
+            </div>
+            <input type="hidden" name="total_charges" id="total_charges_input" value="">
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label for="contract" class="form-label fw-bold">Contract Type</label>
+                <select class="form-select" id="contract" name="contract">
+                    <option value="Month-to-month" {% if contract == 'Month-to-month' %}selected{% endif %}>Month-to-month</option>
+                    <option value="One year" {% if contract == 'One year' or not contract %}selected{% endif %}>One year</option>
+                    <option value="Two year" {% if contract == 'Two year' %}selected{% endif %}>Two year</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="internet_service" class="form-label fw-bold">Internet Service</label>
+                <select class="form-select" id="internet_service" name="internet_service">
+                    <option value="DSL" {% if internet_service == 'DSL' or not internet_service %}selected{% endif %}>DSL</option>
+                    <option value="Fiber optic" {% if internet_service == 'Fiber optic' %}selected{% endif %}>Fiber optic</option>
+                    <option value="No" {% if internet_service == 'No' %}selected{% endif %}>No</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label for="payment_method" class="form-label fw-bold">Payment Method</label>
+                <select class="form-select" id="payment_method" name="payment_method">
+                    <option value="Electronic check" {% if payment_method == 'Electronic check' %}selected{% endif %}>Electronic check</option>
+                    <option value="Mailed check" {% if payment_method == 'Mailed check' %}selected{% endif %}>Mailed check</option>
+                    <option value="Bank transfer (automatic)" {% if payment_method == 'Bank transfer (automatic)' %}selected{% endif %}>Bank transfer (automatic)</option>
+                    <option value="Credit card (automatic)" {% if payment_method == 'Credit card (automatic)' %}selected{% endif %}>Credit card (automatic)</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary px-4 fw-bold">Predict Risk</button>
+    </form>
+
+    <!-- Prediction Output Card -->
+    {% if prediction is not none %}
+    <div class="card mt-5 shadow-sm border-0">
+        <div class="card-header {% if prediction == 'Churn' %}bg-danger{% else %}bg-success{% endif %} text-white py-3">
+            <h4 class="mb-0 fw-bold">Prediction Result</h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-4 text-center border-end">
+                    <h6 class="text-muted text-uppercase fw-semibold">Customer Status</h6>
+                    <span class="badge fs-5 {% if prediction == 'Churn' %}bg-danger{% else %}bg-success{% endif %}">
+                        {{ 'Will Churn' if prediction == 'Churn' else 'Will Stay (Retained)' }}
+                    </span>
+                </div>
+                <div class="col-md-4 text-center border-end">
+                    <h6 class="text-muted text-uppercase fw-semibold">Churn Risk Level</h6>
+                    <span class="badge fs-5 {% if risk_level == 'High Risk' %}bg-danger{% else %}bg-success{% endif %}">
+                        {{ risk_level }}
+                    </span>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h6 class="text-muted text-uppercase fw-semibold">Churn Probability</h6>
+                    <p class="display-6 fw-bold mb-0 {% if probability > 50 %}text-danger{% else %}text-success{% endif %}">
+                        {{ "%.1f"|format(probability) }}%
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function updateCalculations() {
+        const tenure = parseFloat(document.getElementById('tenure').value) || 0;
+        const monthly = parseFloat(document.getElementById('monthly_charges').value) || 0;
+        
+        // Update range labels
+        document.getElementById('tenureVal').innerText = tenure;
+        document.getElementById('monthlyVal').innerText = '₹' + monthly.toFixed(2);
+        
+        // Calculate Total Charges
+        const total = (tenure * monthly).toFixed(2);
+        document.getElementById('totalChargesVal').innerText = '₹' + total;
+        document.getElementById('total_charges_input').value = total;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCalculations();
+    });
+</script>
+{% endblock %}

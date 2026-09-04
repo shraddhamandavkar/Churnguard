@@ -1,0 +1,6 @@
+tenure,contract,monthly_charges,total_charges,internet_service,payment_method,churn
+12,Month-to-month,70.35,844.20,Fiber optic,Electronic check,Churn
+45,One year,55.10,2479.50,DSL,Bank transfer,No Churn
+2,Month-to-month,20.05,40.10,No,Mailed check,Churn
+60,Two year,105.70,6342.00,Fiber optic,Credit card,No Churn
+5,Month-to-month,89.85,449.25,Fiber optic,Electronic check,Churn

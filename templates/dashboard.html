@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4">Dashboard Analytics</h2>
+
+<!-- Metric Summary Cards -->
+<div class="row text-center mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white p-3">
+            <h3>{{ total_customers }}</h3>
+            <p class="mb-0">Total Customers</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white p-3">
+            <h3>{{ churn_count }}</h3>
+            <p class="mb-0">High Churn Risk</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark p-3">
+            <h3>{{ churn_rate }}%</h3>
+            <p class="mb-0">Churn Rate</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white p-3">
+            <h3>₹{{ avg_monthly }}</h3>
+            <p class="mb-0">Avg Monthly Charges</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card p-3 shadow-sm">
+            <h5 class="card-title text-center mb-3">Overall Risk Distribution</h5>
+            <div style="max-height: 280px; position: relative;">
+                <canvas id="churnPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card p-3 shadow-sm">
+            <h5 class="card-title text-center mb-3">Risk Distribution by Contract Type</h5>
+            <div style="max-height: 280px; position: relative;">
+                <canvas id="contractBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 1. Overall Risk Distribution Pie Chart
+    const ctxPie = document.getElementById('churnPieChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: ['Low Risk / Retained', 'High Churn Risk'],
+            datasets: [{
+                data: [{{ non_churn_count }}, {{ churn_count }}],
+                backgroundColor: ['#198754', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    // 2. Risk by Contract Bar Chart
+    const ctxBar = document.getElementById('contractBarChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: {{ contract_labels | tojson }},
+            datasets: [
+                {
+                    label: 'Churned',
+                    data: {{ contract_churned | tojson }},
+                    backgroundColor: '#dc3545'
+                },
+                {
+                    label: 'Retained',
+                    data: {{ contract_retained | tojson }},
+                    backgroundColor: '#198754'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+</script>
+{% endblock %}

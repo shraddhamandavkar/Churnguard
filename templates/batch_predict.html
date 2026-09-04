@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">Batch Customer Assessment</h2>
+                    <p class="text-muted small mb-0">Upload bulk CSV or Excel datasets to execute mass risk evaluations.</p>
+                </div>
+                <a href="{{ url_for('customers') }}" class="btn btn-outline-primary fw-bold">
+                    <i class="bi bi-people-fill me-1"></i> Customer Directory
+                </a>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Schema Requirements Notice -->
+            <div class="alert alert-info border-0 shadow-sm mb-4">
+                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-info-circle-fill me-2 text-info"></i>Expected File Structure</h6>
+                <p class="small text-muted mb-2">Ensure your dataset includes the following mandatory columns before uploading:</p>
+                <ul class="small mb-0 text-muted">
+                    <li><code>tenure</code> — Tenure in months</li>
+                    <li><code>monthly_charges</code> — Monthly billing amount in <strong>Rupees (₹)</strong></li>
+                    <li><code>total_charges</code> — Total cumulative billing amount in <strong>Rupees (₹)</strong></li>
+                    <li><code>contract</code> — e.g., <i>Month-to-month</i>, <i>One year</i>, <i>Two year</i></li>
+                    <li><code>internet_service</code> — e.g., <i>Fiber optic</i>, <i>DSL</i>, <i>No</i></li>
+                    <li><code>payment_method</code> — e.g., <i>Electronic check</i>, <i>Mailed check</i></li>
+                </ul>
+            </div>
+
+            <!-- Upload Card -->
+            <div class="card border-0 shadow-sm p-4">
+                <form method="POST" action="{{ url_for('batch_predict') }}" enctype="multipart/form-data">
+                    <div class="mb-4 text-center p-4 border border-2 border-dashed rounded bg-light">
+                        <i class="bi bi-cloud-arrow-up-fill fs-1 text-primary mb-2 d-block"></i>
+                        <label for="file" class="form-label fw-bold text-dark mb-1">Select CSV or Excel File</label>
+                        <p class="text-muted small mb-3">Supports .csv, .xls, and .xlsx files</p>
+                        <input type="file" name="file" id="file" class="form-control w-75 mx-auto" accept=".csv, .xls, .xlsx" required>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary fw-bold py-2 shadow-sm">
+                            <i class="bi bi-gear-fill me-1"></i> Process Batch File
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
