@@ -175,10 +175,16 @@ def logout():
 
 
 # ==========================================
-# DASHBOARD & ANALYTICS
+# DASHBOARD & ANALYTICS (RENDER PROXY FIX)
 # ==========================================
 
 @app.route('/')
+def home():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    return render_template('login.html')
+
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -547,21 +553,24 @@ def seed_data():
 
 
 # ==========================================
-# GLOBAL ERROR HANDLERS
+# GLOBAL ERROR HANDLERS (WITH SAFE FALLBACKS)
 # ==========================================
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    try:
+        return render_template('404.html'), 404
+    except Exception:
+        return "<h1>404 - Page Not Found</h1><p>The page you are looking for does not exist.</p>", 404
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return render_template('500.html'), 500
+    try:
+        return render_template('500.html'), 500
+    except Exception:
+        return "<h1>500 - Internal Server Error</h1><p>An unexpected error occurred on the server.</p>", 500
 
 
-
-    
 if __name__ == '__main__':
-    # Bind to Render's assigned port or default to 5000 for local testing
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
