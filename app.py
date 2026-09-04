@@ -559,6 +559,9 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
+
+    
 if __name__ == '__main__':
-    is_debug = os.environ.get("FLASK_DEBUG", "False").lower() in ["true", "1"]
-    app.run(debug=is_debug, host='127.0.0.1', port=5000)
+    # Bind to Render's assigned port or default to 5000 for local testing
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
