@@ -2,37 +2,104 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChurnGuard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}ChurnGuard{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+        }
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 768px) {
+            .container, .container-fluid {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            .card {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">ChurnGuard</a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('customers') }}">Customers</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('predict') }}">Predict</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('batch_predict') }}">Batch Predict</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('campaigns') }}">Campaigns</a></li>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">ChurnGuard</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if session.get('user_id') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('predict') }}">Predict Churn</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('batch_predict') }}">Batch CSV</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('customers') }}">Customers</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('campaigns') }}">Campaigns</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm ms-lg-3 mt-2 mt-lg-0" href="{{ url_for('logout') }}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                        </li>
+                    {% endif %}
                 </ul>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Logout</a>
             </div>
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container mt-3">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    <div class="alert alert-{{ 'danger' if category == 'danger' else ('success' if category == 'success' else 'info') }} alert-dismissible fade show shadow-sm" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
-
-        {% block content %}{% endblock %}
     </div>
+
+    <main class="container my-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="text-center text-muted py-4 mt-auto border-top bg-white">
+        <div class="container">
+            <small>&copy; 2026 ChurnGuard Analytics. All rights reserved.</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
